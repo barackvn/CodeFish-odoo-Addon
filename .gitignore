@@ -1,0 +1,153 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Python template
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+.gitignore
+.idea/workspace.xml
+account_parent/models/__init__.pyc
+account_parent/models/account.pyc
+account_parent/models/chart_template.pyc
+account_parent/wizard/__init__.pyc
+account_parent/wizard/account_chart.pyc
+backend_theme_v10_codefish/controllers/__init__.pyc
+backend_theme_v10_codefish/controllers/main.pyc
+backend_theme_v10_codefish/models/__init__.pyc
+backend_theme_v10_codefish/models/res_company.pyc
+backend_theme_v10_codefish/models/res_users.pyc
+dvit_report_rtl/models/__init__.pyc
+dvit_report_rtl/models/report.pyc
+dynamic_barcode_labels/__manifest__.py~
+dynamic_barcode_labels/__openerp__.py~
+dynamic_barcode_labels/models/__init__.pyc
+dynamic_barcode_labels/models/barcode_config.pyc
+dynamic_barcode_labels/models/report_format.pyc
+dynamic_barcode_labels/report/__init__.pyc
+dynamic_barcode_labels/report/barcode_labels.pyc
+dynamic_barcode_labels/report/barcode_labels.py~
+dynamic_barcode_labels/static/description/index.html~
+dynamic_barcode_labels/wizard/__init__.pyc
+dynamic_barcode_labels/wizard/barcode_labels.pyc
+falcon_material_backend_theme/controllers/__init__.pyc
+falcon_material_backend_theme/controllers/main.pyc
+falcon_material_backend_theme/models/__init__.pyc
+falcon_material_backend_theme/models/ir_ui_menu.pyc
+falcon_material_backend_theme/models/web.pyc
+theme_crafito/controllers/__init__.pyc
+theme_crafito/controllers/main.pyc
+theme_crafito/models/__init__.pyc
+theme_crafito/models/event.pyc
+theme_crafito/models/product_category.pyc
+theme_crafito/models/res_partner.pyc
+theme_crafito/models/slider.pyc
+theme_crafito/models/website.pyc
+theme_kit/models/__init__.pyc
+theme_kit/models/res_config.pyc
+theme_kit/models/theme.pyc
+web_rtl_codefish/controllers/__init__.pyc
+web_rtl_codefish/controllers/main.pyc
+web_rtl_codefish/models/__init__.pyc
+web_rtl_codefish/models/ir_qweb.pyc
+web_rtl_codefish/models/res_lang.pyc
