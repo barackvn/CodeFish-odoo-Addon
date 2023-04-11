@@ -22,10 +22,8 @@ class AccountAccount(models.Model):
     def _move_domain_get(self, domain=None):
         context = dict(self._context or {})
         domain = domain and safe_eval(str(domain)) or []
-        
-        date_field = 'date'
-        if context.get('aged_balance'):
-            date_field = 'date_maturity'
+
+        date_field = 'date_maturity' if context.get('aged_balance') else 'date'
         if context.get('date_to'):
             domain += [(date_field, '<=', context['date_to'])]
         if context.get('date_from'):
@@ -111,10 +109,14 @@ class AccountJournal(models.Model):
             account_code_prefix = company.cash_account_code_prefix or company.bank_account_code_prefix or ''
 
         liquidity_type = self.env.ref('account_parent.data_account_type_view')
-        parent_id = self.env['account.account'].search([('code','=',account_code_prefix),
-                                                        ('company_id','=',company.id),('user_type_id','=',liquidity_type.id)], limit=1)
-        
-        if parent_id:
+        if parent_id := self.env['account.account'].search(
+            [
+                ('code', '=', account_code_prefix),
+                ('company_id', '=', company.id),
+                ('user_type_id', '=', liquidity_type.id),
+            ],
+            limit=1,
+        ):
             res.update({'parent_id':parent_id.id})
         return res
 

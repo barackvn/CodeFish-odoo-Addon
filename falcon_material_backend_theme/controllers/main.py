@@ -108,18 +108,14 @@ class Backend(odoo.addons.web.controllers.main.Home):
         fav_icon_backend = request.env['ir.config_parameter'].get_param(
             'fav_icon_backend', default=None)
         image_data = StringIO(str(fav_icon_backend).decode('base64'))
-        response = http1.send_file(image_data, filename='logo', mtime=False)
-        return response
+        return http1.send_file(image_data, filename='logo', mtime=False)
 
     @http.route(['/web/binary/backend_logo'], type='http', auth="public", website=True)
     def backend_logo(self):
-        imgname = 'logo'
-        imgext = '.png'
         placeholder = functools.partial(get_resource_path, 'web', 'static', 'src', 'img')
         backend_logo = request.env["ir.config_parameter"].get_param("backend_logo", default=None)
         if not backend_logo:
-            response = http1.send_file(placeholder(imgname + imgext))
-            return response
+            imgname = 'logo'
+            return http1.send_file(placeholder(f'{imgname}.png'))
         image_data = StringIO(str(backend_logo).decode('base64'))
-        response = http1.send_file(image_data, filename='logo', mtime=False)
-        return response
+        return http1.send_file(image_data, filename='logo', mtime=False)

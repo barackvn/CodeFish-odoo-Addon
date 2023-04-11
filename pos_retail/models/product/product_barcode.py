@@ -15,10 +15,9 @@ class product_barcode(models.Model):
     @api.multi
     def _get_product_id(self):
         for barcode in self:
-            products = self.env['product.product'].search([
-                ('product_tmpl_id', '=', barcode.product_tmpl_id.id)
-            ])
-            if products:
+            if products := self.env['product.product'].search(
+                [('product_tmpl_id', '=', barcode.product_tmpl_id.id)]
+            ):
                 barcode.product_id = products[0].id
             else:
                 barcode.product_id = None

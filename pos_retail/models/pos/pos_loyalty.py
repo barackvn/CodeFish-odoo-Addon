@@ -30,8 +30,9 @@ class pos_loyalty(models.Model):
     @api.model
     def default_get(self, default_fields):
         res = super(pos_loyalty, self).default_get(default_fields)
-        products = self.env['product.product'].search([('default_code', '=', 'Rs')])
-        if products:
+        if products := self.env['product.product'].search(
+            [('default_code', '=', 'Rs')]
+        ):
             res.update({'product_loyalty_id': products[0].id})
         return res
 
@@ -65,7 +66,7 @@ class pos_loyalty_rule(models.Model):
     @api.multi
     def _get_coefficient_note(self):
         for rule in self:
-            rule.coefficient_note = '1 %s will cover to %s point ' % (self.env.user.company_id.currency_id.name, rule.coefficient)
+            rule.coefficient_note = f'1 {self.env.user.company_id.currency_id.name} will cover to {rule.coefficient} point '
 
 class pos_loyalty_reward(models.Model):
     _name = "pos.loyalty.reward"
@@ -113,5 +114,4 @@ class pos_loyalty_reward(models.Model):
     @api.multi
     def _get_coefficient_note(self):
         for rule in self:
-            rule.coefficient_note = '1 point will cover to %s %s ' % (
-                rule.coefficient,self.env.user.company_id.currency_id.name)
+            rule.coefficient_note = f'1 point will cover to {rule.coefficient} {self.env.user.company_id.currency_id.name} '

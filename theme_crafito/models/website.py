@@ -108,53 +108,60 @@ class website(models.Model):
 
     # For category menu in topmenu
     def get_categories(self):
-        categoriess = self.env['product.public.category'].search(
-            [('parent_id', '=', False)])
-        return categoriess
+        return self.env['product.public.category'].search(
+            [('parent_id', '=', False)]
+        )
 
     # For category menu in topmenu
     def get_child_categories(self, child_id):
-        child_categories = self.env['product.public.category'].search(
-            [('parent_id', '=', child_id.id)], order="sequence asc")
-        return child_categories
+        return self.env['product.public.category'].search(
+            [('parent_id', '=', child_id.id)], order="sequence asc"
+        )
 
     # For category megamenu
     @api.multi
     def get_public_product_category(self, submenu):
-        categories = self.env['product.public.category'].search([('parent_id', '=', False),
-                                                                 ('include_in_megamenu',
-                                                                  '!=', False),
-                                                                 ('menu_id', '=', submenu.id)],
-                                                                order="sequence")
-        return categories
+        return self.env['product.public.category'].search(
+            [
+                ('parent_id', '=', False),
+                ('include_in_megamenu', '!=', False),
+                ('menu_id', '=', submenu.id),
+            ],
+            order="sequence",
+        )
 
     # For child category megamenu
     def get_public_product_child_category(self, children):
         child_categories = []
         for child in children:
-            categories = self.env['product.public.category'].search([
-                ('id', '=', child.id),
-                ('include_in_megamenu', '!=', False)], order="sequence")
-            if categories:
+            if categories := self.env['product.public.category'].search(
+                [('id', '=', child.id), ('include_in_megamenu', '!=', False)],
+                order="sequence",
+            ):
                 child_categories.append(categories)
         return child_categories
 
     # For pages megamenu
     def get_megamenu_pages(self, submenu):
-        menus = self.env['website.menu'].sudo().search(
-            [('parent_id', '=', submenu.id)])
-        return menus
+        return (
+            self.env['website.menu']
+            .sudo()
+            .search([('parent_id', '=', submenu.id)])
+        )
 
     # For multi image
     @api.multi
     def get_multiple_images(self, product_id=None):
-        productsss = False
         if product_id:
-            products = self.env['biztech.product.images'].search(
-                [('biz_product_tmpl_id', '=', product_id), ('more_view_exclude', '=', False)], order='sequence')
-            if products:
+            if products := self.env['biztech.product.images'].search(
+                [
+                    ('biz_product_tmpl_id', '=', product_id),
+                    ('more_view_exclude', '=', False),
+                ],
+                order='sequence',
+            ):
                 return products
-        return productsss
+        return False
 
     def get_related_product_ids(self, product):
         rel_lst = []
@@ -164,19 +171,15 @@ class website(models.Model):
             if len(inner_lst) == 4:
                 rel_lst.append(inner_lst)
                 inner_lst = []
-        else:
-            if inner_lst:
-                rel_lst.append(inner_lst)
+        if inner_lst:
+            rel_lst.append(inner_lst)
         return rel_lst
 
     @api.multi
     def convert_date(self, date_given):
         date = date_given
-        temp1 = datetime.strptime(date, '%Y-%m-%d %H:%M:%S').date()
-        if temp1:
-            new_date = str(calendar.month_name[temp1.month]) + \
-                ' '+str(temp1.day)+'th, '+str(temp1.year)
-            return new_date
+        if temp1 := datetime.strptime(date, '%Y-%m-%d %H:%M:%S').date():
+            return f'{str(calendar.month_name[temp1.month])} {str(temp1.day)}th, {str(temp1.year)}'
 
     # Collection snippets
     def get_slider_product_ids(self, collection):
@@ -187,51 +190,38 @@ class website(models.Model):
             if len(inner_lst) == 3:
                 rel_lst.append(inner_lst)
                 inner_lst = []
-        else:
-            if inner_lst:
-                rel_lst.append(inner_lst)
+        if inner_lst:
+            rel_lst.append(inner_lst)
         return rel_lst
 
     def get_feature_products_collections(self, product):
-        list_of_products = self.get_slider_product_ids(
-            product.feature_products_collections)
-        return list_of_products
+        return self.get_slider_product_ids(product.feature_products_collections)
 
     def get_on_sale_collections(self, product):
-        list_of_products = self.get_slider_product_ids(
-            product.on_sale_collections)
-        return list_of_products
+        return self.get_slider_product_ids(product.on_sale_collections)
 
     def get_random_products_collections(self, product):
-        list_of_products = self.get_slider_product_ids(
-            product.random_products_collections)
-        return list_of_products
+        return self.get_slider_product_ids(product.random_products_collections)
 
     def get_low_price_collections(self, product):
-        list_of_products = self.get_slider_product_ids(
-            product.low_price_collections)
-        return list_of_products
+        return self.get_slider_product_ids(product.low_price_collections)
 
     # For Sorting products
     def get_sort_by_data(self):
         request.session['product_sort_name'] = ''
-        sort_by = self.env['biztech.product.sortby'].search([])
-        return sort_by
+        return self.env['biztech.product.sortby'].search([])
 
     # For setting current sort list
     def set_current_sorting_data(self):
-        sort_name = request.session.get('product_sort_name')
-        return sort_name
+        return request.session.get('product_sort_name')
 
     def new_page(self, name, template='website.default_page', ispage=True):
         res = super(website, self).new_page(name, template=template, ispage=ispage)
         page_name = slugify(name, max_length=50)
         ir_view = self.env['ir.ui.view']
-        view_id = self.env['ir.ui.view'].search([('name', '=', res)])
-        if view_id:
+        if view_id := self.env['ir.ui.view'].search([('name', '=', res)]):
             view = ir_view.browse(SUPERUSER_ID, view_id)
-            arch = '<?xml version="1.0"?><t t-name="website.'+str(page_name)+'"><t t-call="website.layout"> <div id="wrap" class="oe_structure oe_empty"><section class="page-title"><div class="container"><h1>'+str(
-                page_name.capitalize())+'</h1><ul class="breadcrumb"><li><a href="/page/homepage">Home</a></li><li class="active">'+str(page_name.capitalize())+'</li></ul></div></section></div></t></t>'
+            arch = f'<?xml version="1.0"?><t t-name="website.{str(page_name)}"><t t-call="website.layout"> <div id="wrap" class="oe_structure oe_empty"><section class="page-title"><div class="container"><h1>{str(page_name.capitalize())}</h1><ul class="breadcrumb"><li><a href="/page/homepage">Home</a></li><li class="active">{str(page_name.capitalize())}</li></ul></div></section></div></t></t>'
             ir_view.write(SUPERUSER_ID, view_id, {'arch': arch})
         return res
 
@@ -242,20 +232,14 @@ class website(models.Model):
         domain = [('state', "in", ['confirm']), ('website_published', '=', 'True'),
                   ('event_type_id', '=', event_cat), ('date_begin', '>=', event_today)]
         event = request.env['event.event'].sudo().search(domain, limit=8)
-        ev = {}
-        ev['event'] = event
-        ev['count'] = len(event)
-        if event:
-            return ev
-        else:
-            return False
+        ev = {'event': event, 'count': len(event)}
+        return ev if event else False
 
     def set_event_tag(self, event_date):
         date = event_date
         today = datetime.now()
         newtoday = datetime.strptime(str(today), "%Y-%m-%d %H:%M:%S.%f").date()
-        temp1 = datetime.strptime(date, '%Y-%m-%d %H:%M:%S').date()
-        if temp1:
+        if temp1 := datetime.strptime(date, '%Y-%m-%d %H:%M:%S').date():
             if temp1.month == today.month and temp1.day == today.day:
                 return _("Today")
             elif temp1.month == today.month and temp1.isocalendar()[1] == today.isocalendar()[1]:
@@ -289,10 +273,11 @@ class website(models.Model):
             pmin = pmax - scope if pmax - scope > 0 else 1
 
         def get_url(page):
-            _url = "%s/page/%s" % (url, page) if page > 1 else url
+            _url = f"{url}/page/{page}" if page > 1 else url
             if url_args and not url_args.get('tag') and not url_args.get('range1') and not url_args.get('range2') and not url_args.get('max1') and not url_args.get('min1') and not url_args.get('sort_id'):
-                _url = "%s?%s" % (_url, werkzeug.url_encode(url_args))
+                _url = f"{_url}?{werkzeug.url_encode(url_args)}"
             return _url
+
         res.update({
             # Overrite existing
             "page_start": {

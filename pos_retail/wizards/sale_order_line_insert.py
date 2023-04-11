@@ -74,7 +74,7 @@ class sale_order_line_insert(models.TransientModel):
     def insert_line(self):
         self.ensure_one()
         vals = {
-            'name': self.name if self.name else self.product_id.name,
+            'name': self.name or self.product_id.name,
             'parent_id': self.line_id.id,
             'order_id': self.order_id.id,
             'product_id': self.product_id.id,
@@ -82,7 +82,7 @@ class sale_order_line_insert(models.TransientModel):
             'product_uom': self.product_uom.id,
             'discount': self.discount,
             'price_unit': self.price_unit,
-            'tax_id': [(6, 0, [tax.id for tax in self.tax_id])]
+            'tax_id': [(6, 0, [tax.id for tax in self.tax_id])],
         }
         self.env['sale.order.line'].create(vals)
         return {'type': 'ir.actions.act_window_close'}

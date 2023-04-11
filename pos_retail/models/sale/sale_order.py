@@ -44,15 +44,21 @@ class sale_order(models.Model):
             product = self.env['product.product'].browse(product_id)
             if product.tracking != 'none':
                 if not line.get('pack_lot_ids', None):
-                    raise UserError(u'Missing lot name (number) of %s' % product.name)
-                else:
-                    for lot_name in line.get('pack_lot_ids'):
-                        lots = self.env['stock.production.lot'].sudo().search([('name', '=', lot_name), ('product_id', '=', product_id)])
-                        if not lots:
-                            raise UserError(u'Wrong or have not this lot name (number) of %s' % product.name)
-                        else:
-                            lot_id = lots[0].id
-                            line['lot_id'] = lot_id
+                    raise UserError(f'Missing lot name (number) of {product.name}')
+                for lot_name in line.get('pack_lot_ids'):
+                    if not (
+                        lots := self.env['stock.production.lot']
+                        .sudo()
+                        .search(
+                            [
+                                ('name', '=', lot_name),
+                                ('product_id', '=', product_id),
+                            ]
+                        )
+                    ):
+                        raise UserError(f'Wrong or have not this lot name (number) of {product.name}')
+                    lot_id = lots[0].id
+                    line['lot_id'] = lot_id
                 del line['pack_lot_ids']
         sale = self.create(vals)
         sale.order_line._compute_tax_id()

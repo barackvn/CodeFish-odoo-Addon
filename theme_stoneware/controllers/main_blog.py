@@ -23,6 +23,6 @@ class WebsiteBlog(WebsiteBlog):
 		value={}
 		if post.get('blog_config_id')!='false':
 			collection_data=request.env['blog.configure'].browse(int(post.get('blog_config_id')))
-			value.update({'blog_slider':collection_data})
+			value['blog_slider'] = collection_data
 		return request.render("theme_stoneware.blog_slider_content", value)
 

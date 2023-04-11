@@ -43,8 +43,9 @@ class pos_promotion(models.Model):
     @api.model
     def default_get(self, fields):
         res = super(pos_promotion, self).default_get(fields)
-        products = self.env['product.product'].search([('name', '=', 'Promotion service')])
-        if products:
+        if products := self.env['product.product'].search(
+            [('name', '=', 'Promotion service')]
+        ):
             res.update({'product_id': products[0].id})
         return res
 

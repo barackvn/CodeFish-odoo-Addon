@@ -27,8 +27,7 @@ class HrEmployee(models.Model):
     def create(self, vals):
         if vals.get('include_inourteam') == True:
             vals.update({'website_published': True})
-        res = super(HrEmployee, self).create(vals)
-        return res
+        return super(HrEmployee, self).create(vals)
 
     @api.multi
     def write(self, vals):
@@ -36,5 +35,4 @@ class HrEmployee(models.Model):
             vals.update({'website_published': True})
         if vals.get('include_inourteam') == False:
             vals.update({'website_published': False})
-        res = super(HrEmployee, self).write(vals)
-        return res
+        return super(HrEmployee, self).write(vals)

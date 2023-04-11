@@ -34,14 +34,13 @@ class BarcodeProductLines(models.TransientModel):
 
     @api.onchange('product_id')
     def onchange_product(self):
-        if not self.product_id.id:
-            return {}
-        return {
-                  'domain':
-                            {
-                             'lot_id': [('product_id', '=', self.product_id.id)]
-                             },
-                }
+        return (
+            {
+                'domain': {'lot_id': [('product_id', '=', self.product_id.id)]},
+            }
+            if self.product_id.id
+            else {}
+        )
 
     @api.onchange('lot_id')
     def onchange_lot(self):
@@ -174,11 +173,10 @@ class BarcodeLabels(models.TransientModel):
             raise Warning(_(" Please configure barcode data from "
                             "configuration menu"))
 
-        qty_set_one = False
-        if config_rec.default_qty_labels \
-            and config_rec.default_qty_labels== 'one_qty':
-            qty_set_one = True
-
+        qty_set_one = bool(
+            config_rec.default_qty_labels
+            and config_rec.default_qty_labels == 'one_qty'
+        )
         datas = {
                  'ids': [x.product_id.id for x in self.product_get_ids],
                  'model': 'product.product',
@@ -234,7 +232,7 @@ class BarcodeLabels(models.TransientModel):
         for product in browse_pro:
             barcode_value = product[config_rec.barcode_field]
             if not barcode_value:
-                raise Warning(_('Please define barcode for %s!' % (product['name'])))
+                raise Warning(_(f"Please define barcode for {product['name']}!"))
             try:
                 barcode.createBarcodeDrawing(
                             config_rec.barcode_type,

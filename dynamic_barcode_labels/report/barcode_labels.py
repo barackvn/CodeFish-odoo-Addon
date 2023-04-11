@@ -23,7 +23,7 @@ class ReportBarcodeLabels(models.AbstractModel):
                             "configuration menu"))
         browse_record_list = []
         for rec in data['form']['product_ids']:
-            for loop in range(0, int(rec['qty'])):
+            for _ in range(int(rec['qty'])):
                 product = product_obj.browse(int(rec['product_id']))
                 revision = ''
                 if 'x_studio_field_n7cKy' in product_obj.sudo()._fields:
@@ -50,11 +50,10 @@ class ReportBarcodeLabels(models.AbstractModel):
         }
 
     def is_humanreadable(self, data):
-        return data['form']['humanreadable'] and 1 or 0
+        return 1 if data['form']['humanreadable'] else 0
 
     def get_barcode_value(self, product, data):
-        barcode_value = product[str(data['form']['barcode_field'])]
-        return barcode_value
+        return product[str(data['form']['barcode_field'])]
 
 #     def _get_barcode_string(self, product, data):
 #         barcode_value = product[str(data['form']['barcode_field'])]

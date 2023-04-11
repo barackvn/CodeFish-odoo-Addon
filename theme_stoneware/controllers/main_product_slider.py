@@ -31,9 +31,10 @@ class WebsiteSale(WebsiteSale):
         if post.get('label'):
             value['header'] = post.get('label')
         if post.get('brand-count'):
-            brand_ids=request.env['product.brand'].search([('visible_slider','=',True)])
-            if brand_ids:
-                value.update({'brands':brand_ids})               
+            if brand_ids := request.env['product.brand'].search(
+                [('visible_slider', '=', True)]
+            ):
+                value['brands'] = brand_ids
         return request.render("theme_stoneware.brand_slider_content", value)  
 
 
@@ -49,13 +50,13 @@ class WebsiteSale(WebsiteSale):
         request.context = dict(request.context, pricelist=pricelist.id, partner=request.env.user.partner_id)
         from_currency = request.env.user.company_id.currency_id
         to_currency = pricelist.currency_id
-        compute_currency = lambda price: from_currency.compute(price, to_currency)                
+        compute_currency = lambda price: from_currency.compute(price, to_currency)
         value = {'obj': False,'compute_currency': compute_currency}
         if post.get('label'):
             value['header'] = post.get('label')
         if post.get('collection_id'):
             collection_data=request.env['collection.configure'].browse(int(post.get('collection_id')))
-            value.update({'obj':collection_data})
+            value['obj'] = collection_data
             return request.render("theme_stoneware.s_collection_configure", value)
 
         return ""
@@ -72,14 +73,14 @@ class WebsiteSale(WebsiteSale):
         request.context = dict(request.context, pricelist=pricelist.id, partner=request.env.user.partner_id)
         from_currency = request.env.user.company_id.currency_id
         to_currency = pricelist.currency_id
-        compute_currency = lambda price: from_currency.compute(price, to_currency) 
+        compute_currency = lambda price: from_currency.compute(price, to_currency)
         value = {'product_obj': False,'compute_currency': compute_currency}
         if post.get('label'):
             value['header'] = post.get('label')
         if post.get('collection_id'):
             collection_data=request.env['collection.configure'].browse(int(post.get('collection_id')))
-            value.update({'product_obj':collection_data})
-                
+            value['product_obj'] = collection_data
+
         return request.render("theme_stoneware.product_tab_content", value)
 
       

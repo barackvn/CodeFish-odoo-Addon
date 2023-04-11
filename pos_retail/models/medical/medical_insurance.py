@@ -37,31 +37,36 @@ class medical_insurance(models.Model):
         if vals.get('rate') > 100 or vals.get('rate') <= 0:
             raise UserError(u'Rate does not smaller than 0 or bigger than 100')
         if not vals.get('product_id', False):
-            products = self.env['product.product'].search([('default_code', '=', 'MS')])
-            if products:
+            if products := self.env['product.product'].search(
+                [('default_code', '=', 'MS')]
+            ):
                 vals.update({'product_id': products[0].id})
             else:
                 raise UserError(
                     'Does not find product Medical Service with default code MS. Please create this product before create medical insurance')
         insurance = super(medical_insurance, self).create(vals)
         if not insurance.code:
-            format_code = "%s%s%s" % ('666', insurance.id, datetime.now().strftime("%d%m%y%H%M"))
+            format_code = f'666{insurance.id}{datetime.now().strftime("%d%m%y%H%M")}'
             code = self.env['barcode.nomenclature'].sanitize_ean(format_code)
             insurance.write({'code': code})
         return insurance
 
     @api.multi
     def write(self, vals):
-        if vals.get('rate', None):
-            if vals.get('rate') > 100 or vals.get('rate') <= 0:
-                raise UserError(u'Rate does not smaller than 0 or bigger than 100')
+        if vals.get('rate', None) and (
+            vals.get('rate') > 100 or vals.get('rate') <= 0
+        ):
+            raise UserError(u'Rate does not smaller than 0 or bigger than 100')
         return super(medical_insurance, self).write(vals)
 
     @api.multi
     def unlink(self):
         for insurance in self:
-            pos_orders = self.env['pos.order'].search(
-                [('state', '=', 'paid'), ('medical_insurance_id', '=', insurance.id)])
-            if pos_orders:
+            if pos_orders := self.env['pos.order'].search(
+                [
+                    ('state', '=', 'paid'),
+                    ('medical_insurance_id', '=', insurance.id),
+                ]
+            ):
                 raise UserError(u'This insurance have linked to pos order state paid, could not remove')
         return super(medical_insurance, self).unlink()

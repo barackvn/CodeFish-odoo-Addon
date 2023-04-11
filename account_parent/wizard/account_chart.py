@@ -26,11 +26,12 @@ class OpenAccountChart(models.TransientModel):
     parent_needed = fields.Boolean('Parent Grouping Needed')
     
     def _build_contexts(self, data):
-        result = {}
-        result['state'] = data['target_move'] or ''
-        result['date_from'] = data['date_from'] or False
-        result['date_to'] = data['date_to'] or False
-        result['strict_range'] = True if result['date_from'] else False
+        result = {
+            'state': data['target_move'] or '',
+            'date_from': data['date_from'] or False,
+            'date_to': data['date_to'] or False,
+        }
+        result['strict_range'] = bool(result['date_from'])
         result['show_parent_account'] = True
         return result
 

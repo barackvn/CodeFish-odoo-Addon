@@ -31,7 +31,7 @@ class res_partner(models.Model):
         for key, value in partner.items():
             if value == "false":
                 partner[key] = False
-            if value == "true":
+            elif value == "true":
                 partner[key] = True
         return super(res_partner, self).create_from_ui(partner)
 
@@ -54,7 +54,7 @@ class res_partner(models.Model):
             for credit in credits:
                 if credit.type == 'plus':
                     partner.credit += credit.amount
-                if credit.type == 'redeem':
+                elif credit.type == 'redeem':
                     partner.debit += credit.amount
             partner.balance = partner.credit + partner.limit_debit - partner.debit
         return True
