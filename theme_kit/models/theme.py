@@ -19,7 +19,7 @@ class Theme(models.Model):
         for r in self:
             code = ''
             if r.top_panel_id:
-                code = code + r.top_panel_id.less
+                code += r.top_panel_id.less
             if r.left_panel_id:
                 code = code + r.left_panel_id.less
             if r.content_id:
@@ -35,7 +35,7 @@ class Theme(models.Model):
                       console.log('Error' + err.name + ":" + err.message + ". " + err.stack);
                       alert('Error' + err.name + ":" + err.message + ". " + err.stack);
                     }'''
-                code = code + '''<script type="text/javascript" id="custom_js">''' + js_code + '''</script>'''
+                code = f'''{code}<script type="text/javascript" id="custom_js">{js_code}</script>'''
             r.code = code
 
     def generate_less2css(self, code):
@@ -44,7 +44,7 @@ class Theme(models.Model):
         cmd = assets.get_command()
         source = assets.get_source()
         compiled = bundle.compile_css(cmd, source)
-        compiled = '''<style type="text/css" id="custom_css">''' + compiled + '''</style>'''
+        compiled = f'''<style type="text/css" id="custom_css">{compiled}</style>'''
         return compiled
 
 
@@ -82,7 +82,7 @@ class ThemeTopPanel(models.Model):
             code = ''
             # double {{ will be formated as single {
             if self.top_panel_bg_active:
-                code = code + '''
+                code += '''
                 #oe_main_menu_navbar {{
                     background-color: {theme.top_panel_bg};
                 }}
@@ -111,7 +111,7 @@ class ThemeTopPanel(models.Model):
                 '''
 
             if self.top_panel_border_active:
-                code = code + '''.o_main_navbar{{
+                code += '''.o_main_navbar{{
                     border-color: {theme.top_panel_border};
                 }}
                 #oe_main_menu_navbar{{
@@ -134,7 +134,7 @@ class ThemeTopPanel(models.Model):
                 }}
                 '''
             if self.top_panel_font_active:
-                code = code + '''.o_main_navbar > ul > li > a {{
+                code += '''.o_main_navbar > ul > li > a {{
                     color: {theme.top_panel_font}!important;
                 }}
                 .navbar-nav li a {{
@@ -179,15 +179,15 @@ class ThemeTopPanel(models.Model):
                 }}
                 '''
             if self.top_panel_active_item_font_active:
-                code = code + '''.navbar-nav .active a{{
+                code += '''.navbar-nav .active a{{
                     color: {theme.top_panel_active_item_font}!important;
                 }}'''
             if self.top_panel_active_item_bg_active:
-                code = code + '''.navbar-nav .active a{{
+                code += '''.navbar-nav .active a{{
                     background-color: {theme.top_panel_active_item_bg}!important;
                 }}'''
             if self.top_panel_hover_item_font_active:
-                code = code + '''.o_main_navbar > ul > li > a:hover{{
+                code += '''.o_main_navbar > ul > li > a:hover{{
                     color: {theme.top_panel_hover_item_font}!important;
                 }}
                 .o_main_navbar > ul > li > a:focus{{
@@ -219,7 +219,7 @@ class ThemeTopPanel(models.Model):
                 }}
                 '''
             if self.top_panel_hover_item_bg_active:
-                code = code + '''.o_main_navbar > ul > li > a:hover{{
+                code += '''.o_main_navbar > ul > li > a:hover{{
                     background-color: {theme.top_panel_hover_item_bg}!important;
                 }}
                 .o_main_navbar > ul > li > a:focus{{
@@ -284,7 +284,7 @@ class ThemeLeftPanel(models.Model):
             # double {{ will be formated as single {
             code = ''
             if self.left_panel_bg_active:
-                code = code + '''.o_web_client > .o_main .o_sub_menu {{
+                code += '''.o_web_client > .o_main .o_sub_menu {{
                     background-color: {theme.left_panel_bg}!important;
                 }}
 
@@ -312,7 +312,7 @@ class ThemeLeftPanel(models.Model):
                 }}
                 '''
             if self.left_panel_main_menu_active:
-                code = code + '''.o_sub_menu .oe_secondary_menu_section{{
+                code += '''.o_sub_menu .oe_secondary_menu_section{{
                     color: {theme.left_panel_main_menu}!important;
                 }}
                 .o_sub_menu .oe_secondary_menu_section .oe_menu_leaf{{
@@ -338,7 +338,7 @@ class ThemeLeftPanel(models.Model):
                 }}
                 '''
             if self.left_panel_sub_menu_active:
-                code = code + '''.o_sub_menu .oe_secondary_submenu .oe_menu_text{{
+                code += '''.o_sub_menu .oe_secondary_submenu .oe_menu_text{{
                     color: {theme.left_panel_sub_menu};
                 }}
                 .o_mail_chat .o_mail_chat_sidebar .o_mail_chat_channel_item {{
@@ -352,7 +352,7 @@ class ThemeLeftPanel(models.Model):
                 }}
                 '''
             if self.left_panel_active_item_font_active:
-                code = code + '''.o_sub_menu .oe_secondary_submenu .active .oe_menu_text{{
+                code += '''.o_sub_menu .oe_secondary_submenu .active .oe_menu_text{{
                     color: {theme.left_panel_active_item_font}!important;
                 }}
                 .o_sub_menu .oe_secondary_submenu a:focus .oe_menu_text{{
@@ -363,7 +363,7 @@ class ThemeLeftPanel(models.Model):
                 }}
                 '''
             if self.left_panel_active_item_bg_active:
-                code = code + '''.o_sub_menu .oe_secondary_submenu .active a{{
+                code += '''.o_sub_menu .oe_secondary_submenu .active a{{
                     background-color: {theme.left_panel_active_item_bg}!important;
                 }}
                 .o_sub_menu .oe_secondary_submenu a:focus{{
@@ -374,7 +374,7 @@ class ThemeLeftPanel(models.Model):
                 }}
                 '''
             if self.left_panel_hover_item_font_active:
-                code = code + '''.o_sub_menu .oe_secondary_submenu a:hover .oe_menu_text{{
+                code += '''.o_sub_menu .oe_secondary_submenu a:hover .oe_menu_text{{
                     color: {theme.left_panel_hover_item_font}!important;
                 }}
                 .o_mail_chat .o_mail_chat_sidebar .o_mail_chat_channel_item:hover {{
@@ -382,7 +382,7 @@ class ThemeLeftPanel(models.Model):
                 }}
                 '''
             if self.left_panel_hover_item_bg_active:
-                code = code + '''.o_sub_menu .oe_secondary_submenu a:hover{{
+                code += '''.o_sub_menu .oe_secondary_submenu a:hover{{
                     background-color: {theme.left_panel_hover_item_bg}!important;
                 }}
                 .o_mail_chat .o_mail_chat_sidebar .o_mail_chat_channel_item:hover {{
@@ -448,7 +448,7 @@ class ThemeContent(models.Model):
         for r in self:
             code = ''
             if self.content_bg_active:
-                code = code + '''.breadcrumb{{
+                code += '''.breadcrumb{{
                     background-color: {theme.content_bg}!important;
                 }}
                 .o_control_panel{{
@@ -527,7 +527,7 @@ class ThemeContent(models.Model):
                 '''
 
             if self.content_form_active:
-                code = code + '''.o_form{{
+                code += '''.o_form{{
                     background-color: {theme.content_form}
                 }}
                 .table-responsive{{
@@ -581,7 +581,7 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_form_text_active:
-                code = code + '''.o_form_view {{
+                code += '''.o_form_view {{
                     color: {theme.content_form_text};
                 }}
                 .o_form {{
@@ -613,7 +613,7 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_form_link_active:
-                code = code + ''' .o_main_content a {{
+                code += ''' .o_main_content a {{
                     color: {theme.content_form_link};
                 }}
                 .o_control_panel .breadcrumb > li > a {{
@@ -627,7 +627,7 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_button_active:
-                code = code + '''.oe_highlight,
+                code += '''.oe_highlight,
                 .o_button.btn-primary,
                 .btn-primary{{
                     background-color: {theme.content_button} !important;
@@ -653,12 +653,12 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_text_active:
-                code = code + '''.o_main{{
+                code += '''.o_main{{
                     color: {theme.content_text} !important;
                 }}
                 '''
             if self.content_form_title_active:
-                code = code + '''.o_horizontal_separator {{
+                code += '''.o_horizontal_separator {{
                     color: {theme.content_form_title} !important;
                 }}
                 .o_main .o_horizontal_separator {{
@@ -675,17 +675,17 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_loader_active:
-                code = code + '''.o_loading {{
+                code += '''.o_loading {{
                     background: {theme.content_loader}!important;
                     border: 1px solid {theme.content_loader}!important;
                     color: darken({theme.content_loader},40%)!important;
                 }}'''
             if self.content_loader_text_active:
-                code = code + '''.o_loading {{
+                code += '''.o_loading {{
                     color: {theme.content_loader_text}!important;
                 }}'''
             if self.content_statusbar_bg_active:
-                code = code + '''.o_form_statusbar {{
+                code += '''.o_form_statusbar {{
                     background-color: {theme.content_statusbar_bg}!important;
                 }}
                 .o_form_view .o_form_statusbar > .o_statusbar_status > .o_arrow_button:before,
@@ -698,7 +698,7 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_statusbar_element_active:
-                code = code + '''.o_form_view .o_form_statusbar > .o_statusbar_status > .o_arrow_button.btn-primary.disabled{{
+                code += '''.o_form_view .o_form_statusbar > .o_statusbar_status > .o_arrow_button.btn-primary.disabled{{
                     background-color: {theme.content_statusbar_element}!important;
                 }}
                 .o_form_view .o_form_statusbar > .o_statusbar_status > .o_arrow_button.btn-primary.disabled .o_arrow_button:after{{
@@ -716,7 +716,7 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_statusbar_font_color_active:
-                code = code + '''.o_form_view .o_form_statusbar .o_statusbar_status .o_arrow_button {{
+                code += '''.o_form_view .o_form_statusbar .o_statusbar_status .o_arrow_button {{
                     color: lighten({theme.content_statusbar_font_color}, 25%)
                 }}
                 .o_form_view .o_form_statusbar .o_statusbar_status .o_arrow_button.btn-primary.disabled {{
@@ -730,12 +730,12 @@ class ThemeContent(models.Model):
                 }}
                 '''
             if self.content_main_menu_font_color_active:
-                code = code + '''.o_application_switcher .o_caption {{
+                code += '''.o_application_switcher .o_caption {{
                     color: {theme.content_main_menu_font_color}!important
                 }}
                 '''
             if self.content_footer_color_active:
-                code = code + '''.o_view_manager_content {{
+                code += '''.o_view_manager_content {{
                         background-color: {theme.content_footer_color}!important
                 }}
                 '''

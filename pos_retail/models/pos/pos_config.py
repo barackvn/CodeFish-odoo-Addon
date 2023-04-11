@@ -283,17 +283,11 @@ class pos_config(models.Model):
 
     @api.onchange('receipt_invoice_number')
     def _onchange_receipt_invoice_number(self):
-        if self.receipt_invoice_number == True:
-            self.lock_print_invoice_on_pos = False
-        else:
-            self.lock_print_invoice_on_pos = True
+        self.lock_print_invoice_on_pos = self.receipt_invoice_number != True
 
     @api.onchange('pos_auto_invoice')
     def _onchange_pos_auto_invoice(self):
-        if self.pos_auto_invoice == True:
-            self.iface_invoicing = True
-        else:
-            self.iface_invoicing = False
+        self.iface_invoicing = self.pos_auto_invoice == True
 
     @api.onchange('staff_level')
     def on_change_staff_level(self):
@@ -324,9 +318,9 @@ class pos_config(models.Model):
                 'pos_method_type': 'wallet'
             })
         Account = self.env['account.account']
-        wallet_account_old_version = Account.sudo().search([
-            ('code', '=', 'AUW'), ('company_id', '=', user.company_id.id)])
-        if wallet_account_old_version:
+        if wallet_account_old_version := Account.sudo().search(
+            [('code', '=', 'AUW'), ('company_id', '=', user.company_id.id)]
+        ):
             wallet_account = wallet_account_old_version[0]
         else:
             wallet_account = Account.sudo().create({
@@ -336,20 +330,23 @@ class pos_config(models.Model):
                 'company_id': user.company_id.id,
                 'note': 'code "AUW" auto give wallet amount of customers',
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'account_use_wallet' + str(user.company_id.id),
-                'model': 'account.account',
-                'module': 'pos_retail',
-                'res_id': wallet_account.id,
-                'noupdate': True,  # If it's False, target record (res_id) will be removed while module update
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'account_use_wallet{str(user.company_id.id)}',
+                    'model': 'account.account',
+                    'module': 'pos_retail',
+                    'res_id': wallet_account.id,
+                    'noupdate': True,
+                }
+            )
 
-        wallet_journal_inactive = Journal.sudo().search([
-            ('code', '=', 'UWJ'),
-            ('company_id', '=', user.company_id.id),
-            ('pos_method_type', '=', 'wallet')
-        ])
-        if wallet_journal_inactive:
+        if wallet_journal_inactive := Journal.sudo().search(
+            [
+                ('code', '=', 'UWJ'),
+                ('company_id', '=', user.company_id.id),
+                ('pos_method_type', '=', 'wallet'),
+            ]
+        ):
             wallet_journal_inactive.sudo().write({
                 'default_debit_account_id': wallet_account.id,
                 'default_credit_account_id': wallet_account.id,
@@ -358,18 +355,26 @@ class pos_config(models.Model):
             })
             wallet_journal = wallet_journal_inactive
         else:
-            new_sequence = self.env['ir.sequence'].sudo().create({
-                'name': 'Account Default Wallet Journal ' + str(user.company_id.id),
-                'padding': 3,
-                'prefix': 'UW ' + str(user.company_id.id),
-            })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'journal_sequence' + str(new_sequence.id),
-                'model': 'ir.sequence',
-                'module': 'pos_retail',
-                'res_id': new_sequence.id,
-                'noupdate': True,
-            })
+            new_sequence = (
+                self.env['ir.sequence']
+                .sudo()
+                .create(
+                    {
+                        'name': f'Account Default Wallet Journal {str(user.company_id.id)}',
+                        'padding': 3,
+                        'prefix': f'UW {str(user.company_id.id)}',
+                    }
+                )
+            )
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'journal_sequence{str(new_sequence.id)}',
+                    'model': 'ir.sequence',
+                    'module': 'pos_retail',
+                    'res_id': new_sequence.id,
+                    'noupdate': True,
+                }
+            )
             wallet_journal = Journal.sudo().create({
                 'name': 'Wallet',
                 'code': 'UWJ',
@@ -382,13 +387,15 @@ class pos_config(models.Model):
                 'default_credit_account_id': wallet_account.id,
                 'sequence': 100,
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'use_wallet_journal_' + str(wallet_journal.id),
-                'model': 'account.journal',
-                'module': 'pos_retail',
-                'res_id': int(wallet_journal.id),
-                'noupdate': True,
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'use_wallet_journal_{str(wallet_journal.id)}',
+                    'model': 'account.journal',
+                    'module': 'pos_retail',
+                    'res_id': int(wallet_journal.id),
+                    'noupdate': True,
+                }
+            )
 
         config = self
         config.sudo().write({
@@ -418,9 +425,9 @@ class pos_config(models.Model):
                 'pos_method_type': 'voucher'
             })
         Account = self.env['account.account']
-        voucher_account_old_version = Account.sudo().search([
-            ('code', '=', 'AVC'), ('company_id', '=', user.company_id.id)])
-        if voucher_account_old_version:
+        if voucher_account_old_version := Account.sudo().search(
+            [('code', '=', 'AVC'), ('company_id', '=', user.company_id.id)]
+        ):
             voucher_account = voucher_account_old_version[0]
         else:
             voucher_account = Account.sudo().create({
@@ -430,13 +437,15 @@ class pos_config(models.Model):
                 'company_id': user.company_id.id,
                 'note': 'code "AVC" auto give voucher histories of customers',
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'account_voucher' + str(user.company_id.id),
-                'model': 'account.account',
-                'module': 'pos_retail',
-                'res_id': voucher_account.id,
-                'noupdate': True,  # If it's False, target record (res_id) will be removed while module update
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'account_voucher{str(user.company_id.id)}',
+                    'model': 'account.account',
+                    'module': 'pos_retail',
+                    'res_id': voucher_account.id,
+                    'noupdate': True,
+                }
+            )
 
         voucher_journal = Journal.sudo().search([
             ('code', '=', 'VCJ'),
@@ -453,18 +462,26 @@ class pos_config(models.Model):
             })
             voucher_journal = voucher_journal[0]
         else:
-            new_sequence = self.env['ir.sequence'].sudo().create({
-                'name': 'Account Voucher ' + str(user.company_id.id),
-                'padding': 3,
-                'prefix': 'AVC ' + str(user.company_id.id),
-            })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'journal_sequence' + str(new_sequence.id),
-                'model': 'ir.sequence',
-                'module': 'pos_retail',
-                'res_id': new_sequence.id,
-                'noupdate': True,
-            })
+            new_sequence = (
+                self.env['ir.sequence']
+                .sudo()
+                .create(
+                    {
+                        'name': f'Account Voucher {str(user.company_id.id)}',
+                        'padding': 3,
+                        'prefix': f'AVC {str(user.company_id.id)}',
+                    }
+                )
+            )
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'journal_sequence{str(new_sequence.id)}',
+                    'model': 'ir.sequence',
+                    'module': 'pos_retail',
+                    'res_id': new_sequence.id,
+                    'noupdate': True,
+                }
+            )
             voucher_journal = Journal.sudo().create({
                 'name': 'Voucher',
                 'code': 'VCJ',
@@ -477,13 +494,15 @@ class pos_config(models.Model):
                 'default_credit_account_id': voucher_account.id,
                 'sequence': 101,
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'journal_voucher_' + str(voucher_journal.id),
-                'model': 'account.journal',
-                'module': 'pos_retail',
-                'res_id': int(voucher_journal.id),
-                'noupdate': True,
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'journal_voucher_{str(voucher_journal.id)}',
+                    'model': 'account.journal',
+                    'module': 'pos_retail',
+                    'res_id': int(voucher_journal.id),
+                    'noupdate': True,
+                }
+            )
 
         config = self
         config.sudo().write({
@@ -504,18 +523,19 @@ class pos_config(models.Model):
     def init_credit_journal(self):
         Journal = self.env['account.journal']
         user = self.env.user
-        voucher_journal = Journal.sudo().search([
-            ('code', '=', 'CJ'),
-            ('company_id', '=', user.company_id.id),
-        ])
-        if voucher_journal:
+        if voucher_journal := Journal.sudo().search(
+            [
+                ('code', '=', 'CJ'),
+                ('company_id', '=', user.company_id.id),
+            ]
+        ):
             return voucher_journal.sudo().write({
                 'pos_method_type': 'credit'
             })
         Account = self.env['account.account']
-        credit_account_old_version = Account.sudo().search([
-            ('code', '=', 'ACJ'), ('company_id', '=', user.company_id.id)])
-        if credit_account_old_version:
+        if credit_account_old_version := Account.sudo().search(
+            [('code', '=', 'ACJ'), ('company_id', '=', user.company_id.id)]
+        ):
             credit_account = credit_account_old_version[0]
         else:
             credit_account = Account.sudo().create({
@@ -525,13 +545,15 @@ class pos_config(models.Model):
                 'company_id': user.company_id.id,
                 'note': 'code "CA" give credit payment customer',
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'account_credit' + str(user.company_id.id),
-                'model': 'account.account',
-                'module': 'pos_retail',
-                'res_id': credit_account.id,
-                'noupdate': True,  # If it's False, target record (res_id) will be removed while module update
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'account_credit{str(user.company_id.id)}',
+                    'model': 'account.account',
+                    'module': 'pos_retail',
+                    'res_id': credit_account.id,
+                    'noupdate': True,
+                }
+            )
 
         credit_journal = Journal.sudo().search([
             ('code', '=', 'CJ'),
@@ -548,18 +570,26 @@ class pos_config(models.Model):
             })
             credit_journal = credit_journal[0]
         else:
-            new_sequence = self.env['ir.sequence'].sudo().create({
-                'name': 'Credit account ' + str(user.company_id.id),
-                'padding': 3,
-                'prefix': 'CA ' + str(user.company_id.id),
-            })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'journal_sequence' + str(new_sequence.id),
-                'model': 'ir.sequence',
-                'module': 'pos_retail',
-                'res_id': new_sequence.id,
-                'noupdate': True,
-            })
+            new_sequence = (
+                self.env['ir.sequence']
+                .sudo()
+                .create(
+                    {
+                        'name': f'Credit account {str(user.company_id.id)}',
+                        'padding': 3,
+                        'prefix': f'CA {str(user.company_id.id)}',
+                    }
+                )
+            )
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'journal_sequence{str(new_sequence.id)}',
+                    'model': 'ir.sequence',
+                    'module': 'pos_retail',
+                    'res_id': new_sequence.id,
+                    'noupdate': True,
+                }
+            )
             credit_journal = Journal.sudo().create({
                 'name': 'Customer Credit',
                 'code': 'CJ',
@@ -572,13 +602,15 @@ class pos_config(models.Model):
                 'default_credit_account_id': credit_account.id,
                 'sequence': 102,
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'credit_journal_' + str(credit_journal.id),
-                'model': 'account.journal',
-                'module': 'pos_retail',
-                'res_id': int(credit_journal.id),
-                'noupdate': True,
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'credit_journal_{str(credit_journal.id)}',
+                    'model': 'account.journal',
+                    'module': 'pos_retail',
+                    'res_id': int(credit_journal.id),
+                    'noupdate': True,
+                }
+            )
 
         config = self
         config.sudo().write({
@@ -608,9 +640,9 @@ class pos_config(models.Model):
                 'pos_method_type': 'return'
             })
         Account = self.env['account.account']
-        return_account_old_version = Account.sudo().search([
-            ('code', '=', 'ARO'), ('company_id', '=', user.company_id.id)])
-        if return_account_old_version:
+        if return_account_old_version := Account.sudo().search(
+            [('code', '=', 'ARO'), ('company_id', '=', user.company_id.id)]
+        ):
             return_account = return_account_old_version[0]
         else:
             return_account = Account.sudo().create({
@@ -620,13 +652,15 @@ class pos_config(models.Model):
                 'company_id': user.company_id.id,
                 'note': 'code "ARO" give return order from customer',
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'return_account' + str(user.company_id.id),
-                'model': 'account.account',
-                'module': 'pos_retail',
-                'res_id': return_account.id,
-                'noupdate': True,  # If it's False, target record (res_id) will be removed while module update
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'return_account{str(user.company_id.id)}',
+                    'model': 'account.account',
+                    'module': 'pos_retail',
+                    'res_id': return_account.id,
+                    'noupdate': True,
+                }
+            )
 
         return_journal = Journal.sudo().search([
             ('code', '=', 'ROJ'),
@@ -640,18 +674,26 @@ class pos_config(models.Model):
             })
             return_journal = return_journal[0]
         else:
-            new_sequence = self.env['ir.sequence'].sudo().create({
-                'name': 'Return account ' + str(user.company_id.id),
-                'padding': 3,
-                'prefix': 'RA ' + str(user.company_id.id),
-            })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'journal_sequence' + str(new_sequence.id),
-                'model': 'ir.sequence',
-                'module': 'pos_retail',
-                'res_id': new_sequence.id,
-                'noupdate': True,
-            })
+            new_sequence = (
+                self.env['ir.sequence']
+                .sudo()
+                .create(
+                    {
+                        'name': f'Return account {str(user.company_id.id)}',
+                        'padding': 3,
+                        'prefix': f'RA {str(user.company_id.id)}',
+                    }
+                )
+            )
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'journal_sequence{str(new_sequence.id)}',
+                    'model': 'ir.sequence',
+                    'module': 'pos_retail',
+                    'res_id': new_sequence.id,
+                    'noupdate': True,
+                }
+            )
             return_journal = Journal.sudo().create({
                 'name': 'Return Order Customer',
                 'code': 'ROJ',
@@ -664,13 +706,15 @@ class pos_config(models.Model):
                 'default_credit_account_id': return_account.id,
                 'sequence': 103,
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'return_journal_' + str(return_journal.id),
-                'model': 'account.journal',
-                'module': 'pos_retail',
-                'res_id': int(return_journal.id),
-                'noupdate': True,
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'return_journal_{str(return_journal.id)}',
+                    'model': 'account.journal',
+                    'module': 'pos_retail',
+                    'res_id': int(return_journal.id),
+                    'noupdate': True,
+                }
+            )
 
         config = self
         config.sudo().write({
@@ -700,9 +744,9 @@ class pos_config(models.Model):
             return rounding_journal.sudo().write({
                 'pos_method_type': 'rounding'
             })
-        rounding_account_old_version = Account.sudo().search([
-            ('code', '=', 'AAR'), ('company_id', '=', user.company_id.id)])
-        if rounding_account_old_version:
+        if rounding_account_old_version := Account.sudo().search(
+            [('code', '=', 'AAR'), ('company_id', '=', user.company_id.id)]
+        ):
             rounding_account = rounding_account_old_version[0]
         else:
             _logger.info('rounding_account have not')
@@ -713,13 +757,15 @@ class pos_config(models.Model):
                 'company_id': user.company_id.id,
                 'note': 'code "AAR" give rounding pos order',
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'rounding_account' + str(user.company_id.id),
-                'model': 'account.account',
-                'module': 'pos_retail',
-                'res_id': rounding_account.id,
-                'noupdate': True,
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'rounding_account{str(user.company_id.id)}',
+                    'model': 'account.account',
+                    'module': 'pos_retail',
+                    'res_id': rounding_account.id,
+                    'noupdate': True,
+                }
+            )
         rounding_journal = Journal.sudo().search([
             ('pos_method_type', '=', 'rounding'),
             ('company_id', '=', user.company_id.id),
@@ -734,18 +780,26 @@ class pos_config(models.Model):
             })
             rounding_journal = rounding_journal[0]
         else:
-            new_sequence = self.env['ir.sequence'].sudo().create({
-                'name': 'rounding account ' + str(user.company_id.id),
-                'padding': 3,
-                'prefix': 'RA ' + str(user.company_id.id),
-            })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'journal_sequence' + str(new_sequence.id),
-                'model': 'ir.sequence',
-                'module': 'pos_retail',
-                'res_id': new_sequence.id,
-                'noupdate': True,
-            })
+            new_sequence = (
+                self.env['ir.sequence']
+                .sudo()
+                .create(
+                    {
+                        'name': f'rounding account {str(user.company_id.id)}',
+                        'padding': 3,
+                        'prefix': f'RA {str(user.company_id.id)}',
+                    }
+                )
+            )
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'journal_sequence{str(new_sequence.id)}',
+                    'model': 'ir.sequence',
+                    'module': 'pos_retail',
+                    'res_id': new_sequence.id,
+                    'noupdate': True,
+                }
+            )
             rounding_journal = Journal.sudo().create({
                 'name': 'Rounding',
                 'code': 'RDJ',
@@ -758,13 +812,15 @@ class pos_config(models.Model):
                 'default_credit_account_id': rounding_account.id,
                 'sequence': 103,
             })
-            self.env['ir.model.data'].sudo().create({
-                'name': 'rounding_journal_' + str(rounding_journal.id),
-                'model': 'account.journal',
-                'module': 'pos_retail',
-                'res_id': int(rounding_journal.id),
-                'noupdate': True,
-            })
+            self.env['ir.model.data'].sudo().create(
+                {
+                    'name': f'rounding_journal_{str(rounding_journal.id)}',
+                    'model': 'account.journal',
+                    'module': 'pos_retail',
+                    'res_id': int(rounding_journal.id),
+                    'noupdate': True,
+                }
+            )
 
         config = self
         config.sudo().write({

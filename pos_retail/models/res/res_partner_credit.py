@@ -31,9 +31,7 @@ class res_partner_credit(models.Model):
 
     @api.multi
     def unlink(self):
-        partners = []
-        for credit in self:
-            partners.append(credit.partner_id)
+        partners = [credit.partner_id for credit in self]
         res = super(res_partner_credit, self).unlink()
         for partner in partners:
             partner.sync()

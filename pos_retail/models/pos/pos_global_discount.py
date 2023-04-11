@@ -14,7 +14,8 @@ class pos_discount(models.Model):
     @api.model
     def default_get(self, default_fields):
         res = super(pos_discount, self).default_get(default_fields)
-        products = self.env['product.product'].search([('name', '=', 'Discount')])
-        if products:
+        if products := self.env['product.product'].search(
+            [('name', '=', 'Discount')]
+        ):
             res.update({'product_id': products[0].id})
         return res

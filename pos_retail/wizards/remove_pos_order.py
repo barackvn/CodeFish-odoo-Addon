@@ -26,9 +26,13 @@ class remove_pos_order(models.TransientModel):
             raise UserError(_('Warning!\n'
                             'Please select order!'))
         order_ids = [order.id for order in orders]
-        self.env.cr.execute(''' select id from account_bank_statement_line
-                    WHERE pos_statement_id in %s''' % (
-                    " (%s) " % ','.join(map(str, order_ids))))
+        self.env.cr.execute(
+            (
+                ''' select id from account_bank_statement_line
+                    WHERE pos_statement_id in %s'''
+                % f" ({','.join(map(str, order_ids))}) "
+            )
+        )
         result = self.env.cr.dictfetchall()
         for statement_line in result:
             statement_line = self.env['account.bank.statement.line'].browse([statement_line.get('id')])
@@ -41,12 +45,16 @@ class remove_pos_order(models.TransientModel):
                 if move_lines:
                     del_rec_line = ''' delete from account_partial_reconcile
                                         WHERE credit_move_id in %s or debit_move_id in %s''' % (
-                    " (%s) " % ','.join(map(str, move_lines)), " (%s) " % ','.join(map(str, move_lines)))
+                        f" ({','.join(map(str, move_lines))}) ",
+                        f" ({','.join(map(str, move_lines))}) ",
+                    )
                     self.env.cr.execute(del_rec_line)
                 if move_ids:
-                    del_move = ''' delete from account_move
-                                        WHERE id in %s''' % (
-                                " (%s) " % ','.join(map(str, move_ids)))
+                    del_move = (
+                        ''' delete from account_move
+                                        WHERE id in %s'''
+                        % f" ({','.join(map(str, move_ids))}) "
+                    )
                     self.env.cr.execute(del_move)
                     self.env.cr.commit()
         once = False
@@ -54,22 +62,39 @@ class remove_pos_order(models.TransientModel):
             order_obj.browse(order_ids).filtered(lambda x: x.state == 'done').mapped(
                 'amount_total'))
         orders = order_obj.browse(order_ids)
-        session_ids = list(set([order.session_id for order in orders]))
+        session_ids = list({order.session_id for order in orders})
         picking_ids = [order.picking_id.id for order in orders if order.picking_id]
         statements = list(
-            set([statement_id for session_id in session_ids for statement_id in session_id.statement_ids]))
-        del_rec_line = ''' delete from pos_order
-                                WHERE id in %s''' % (" (%s) " % ','.join(map(str, order_ids)))
+            {
+                statement_id
+                for session_id in session_ids
+                for statement_id in session_id.statement_ids
+            }
+        )
+        del_rec_line = (
+            ''' delete from pos_order
+                                WHERE id in %s'''
+            % f" ({','.join(map(str, order_ids))}) "
+        )
         self.env.cr.execute(del_rec_line)
         if picking_ids:
-            del_pack_line = ''' delete from stock_move_line
-                                    WHERE picking_id in %s''' % (" (%s) " % ','.join(map(str, picking_ids)))
+            del_pack_line = (
+                ''' delete from stock_move_line
+                                    WHERE picking_id in %s'''
+                % f" ({','.join(map(str, picking_ids))}) "
+            )
             self.env.cr.execute(del_pack_line)
-            del_move_line = ''' delete from stock_move
-                                    WHERE picking_id in %s''' % (" (%s) " % ','.join(map(str, picking_ids)))
+            del_move_line = (
+                ''' delete from stock_move
+                                    WHERE picking_id in %s'''
+                % f" ({','.join(map(str, picking_ids))}) "
+            )
             self.env.cr.execute(del_move_line)
-            del_picking_line = ''' delete from stock_picking
-                                    WHERE id in %s''' % (" (%s) " % ','.join(map(str, picking_ids)))
+            del_picking_line = (
+                ''' delete from stock_picking
+                                    WHERE id in %s'''
+                % f" ({','.join(map(str, picking_ids))}) "
+            )
             self.env.cr.execute(del_picking_line)
         for each_stat in statements:
             each_stat._end_balance()

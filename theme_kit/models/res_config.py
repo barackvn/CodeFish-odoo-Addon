@@ -87,15 +87,13 @@ class Config(models.TransientModel):
     @api.multi
     def set_theme(self):
         custom_css = self.env.ref('theme_kit.custom_css')
-        code = ''
-        if self.theme_id:
-            code = self.theme_id.code
+        code = self.theme_id.code if self.theme_id else ''
         arch = CUSTOM_CSS_ARCH % code
         custom_css.write({'arch': arch})
 
     def _attachment2url(self, att):
-        sha = hashlib.sha1(getattr(att, '__last_update')).hexdigest()[0:7]
-        return '/web/image/%s-%s' % (att.id, sha)
+        sha = hashlib.sha1(getattr(att, '__last_update')).hexdigest()[:7]
+        return f'/web/image/{att.id}-{sha}'
 
     @api.multi
     def set_favicon(self):

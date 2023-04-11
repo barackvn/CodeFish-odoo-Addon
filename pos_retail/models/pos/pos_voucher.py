@@ -35,7 +35,7 @@ class pos_voucher(models.Model):
     def create(self, vals):
         voucher = super(pos_voucher, self).create(vals)
         if not voucher.code:
-            format_code = "%s%s%s" % ('999', voucher.id, datetime.now().strftime("%d%m%y%H%M"))
+            format_code = f'999{voucher.id}{datetime.now().strftime("%d%m%y%H%M")}'
             code = self.env['barcode.nomenclature'].sanitize_ean(format_code)
             voucher.write({'code': code})
         return voucher
@@ -50,9 +50,9 @@ class pos_voucher(models.Model):
     def create_voucher(self, vals):
         _logger.info('{create_voucher}: %s' % vals)
         datas_response = []
-        today = datetime.today()
+        today = datetime.now()
         products = self.env['product.product'].search([('name', '=', 'Voucher service')])
-        for i in range(0, vals['total_available']):
+        for _ in range(vals['total_available']):
             customer_id = None
             if vals.get('special_customer', None) == 'special_customer':
                 customer_id = vals.get('customer_id', None)
@@ -65,15 +65,16 @@ class pos_voucher(models.Model):
                 'end_date': today + timedelta(days=vals['period_days'])
             }
             if products:
-                voucher_vals.update({'product_id': products[0].id})
+                voucher_vals['product_id'] = products[0].id
             voucher = self.create(voucher_vals)
-            format_code = "%s%s%s" % ('999', voucher.id, datetime.now().strftime("%d%m%y%H%M"))
+            format_code = f'999{voucher.id}{datetime.now().strftime("%d%m%y%H%M")}'
             code = self.env['barcode.nomenclature'].sanitize_ean(format_code)
             voucher.write({'code': code})
-            if voucher.method == 'special_customer':
-                method = 'Special Customer'
-            else:
-                method = 'General'
+            method = (
+                'Special Customer'
+                if voucher.method == 'special_customer'
+                else 'General'
+            )
             if voucher.apply_type == 'fixed_amount':
                 apply_type = 'Fixed Amount'
             else:
@@ -93,7 +94,4 @@ class pos_voucher(models.Model):
     def get_voucher_by_code(self, code):
         vouchers = self.env['pos.voucher'].search(
             [('code', '=', code), ('end_date', '>=', fields.Datetime.now()), ('state', '=', 'active')])
-        if not vouchers:
-            return -1
-        else:
-            return vouchers.read([])[0]
+        return vouchers.read([])[0] if vouchers else -1

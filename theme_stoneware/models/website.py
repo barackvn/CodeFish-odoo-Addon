@@ -37,61 +37,56 @@ class website(models.Model):
     @api.model
     def new_page(self, name, template='website.default_page', ispage=True): 
         res = super(website,self).new_page(name, template, ispage)
-        if  ispage:       
+        if ispage:   
             template_module, dummy = template.split('.')
             website_id = self._context.get('website_id')
 
             # completely arbitrary max_length
             page_name = slugify(name, max_length=50)
-            page_xmlid = "%s.%s" % (template_module, page_name)
-
             # find a free xmlid
             inc = 0
+            page_xmlid = f"{template_module}.{page_name}"
             domain_static = [('website_id', '=', False), ('website_id', '=', website_id)]
             while self.env['ir.ui.view'].with_context(active_test=False).sudo().search([('key', '=', page_xmlid), '|'] + domain_static):
                 inc += 1
-                page_xmlid = "%s.%s" % (template_module, page_name + ("-%s" % inc if inc else ""))
-            page_name += (inc and "-%s" % inc or "")
+                page_xmlid = f'{template_module}.{page_name + (f"-{inc}" if inc else "")}'
+            page_name += inc and f"-{inc}" or ""
 
             # new page
             template_record = self.env.ref(template)
-            key = '%s.%s' % (template_module, page_name)
+            key = f'{template_module}.{page_name}'
             page = template_record.copy({'website_id': website_id, 'key': key})
             page.with_context(lang=None).write({
                 'arch': page.arch.replace(template, page_xmlid),
                 'name': page_name,
                 'page': ispage,
             })
-            arch = "<?xml version='1.0'?><t t-name='website."+str(page_name)+"'><t t-call='website.layout'> \
+            arch = (
+                f"<?xml version='1.0'?><t t-name='website.{str(page_name)}"
+                + "'><t t-call='website.layout'> \
                     <div id='wrap' class='oe_structure oe_empty'>"
+            )
 
-            arch=arch+'<t t-if="not website.is_breadcum">'
+            arch = f'{arch}<t t-if="not website.is_breadcum">'
 
-            arch =arch+'<t t-if="not website.bread_cum_image">'\
-                '<nav class="is-breadcrumb shop-breadcrumb" role="navigation" aria-label="breadcrumbs">'\
-                      '<div class="container">'\
-                        '<h1><span>'+str(page_name)+'</span></h1>'\
-                        '<ul class="breadcrumb">'\
-                            '<li><a href="/page/homepage">Home</a></li>'\
-                            '<li class="active"><span>'+str(page_name)+'</span></li>'\
-                        '</ul>'\
-                      '</div>'\
-                '</nav>'\
+            arch = f'{arch}<t t-if="not website.bread_cum_image"><nav class="is-breadcrumb shop-breadcrumb" role="navigation" aria-label="breadcrumbs"><div class="container"><h1><span>{str(page_name)}</span></h1><ul class="breadcrumb"><li><a href="/page/homepage">Home</a></li><li class="active"><span>{str(page_name)}</span></li></ul></div></nav></t>'
+            arch = (
+                f'{arch}<t t-if="website.bread_cum_image"><t t-set="bread_cum" t-value="website.image_url(website,'
+                + repr('bread_cum_image')
+                + ')"/>'
+                '<nav class="is-breadcrumb shop-breadcrumb" role="navigation" aria-label="breadcrumbs" t-attf-style="background-image:url(#{bread_cum}#)">'
+                '<div class="container">'
+                '<h1><span>' + str(page_name) + '</span></h1>'
+                '<ul class="breadcrumb">'
+                '<li><a href="/page/homepage">Home</a></li>'
+                '<li class="active"><span>' + str(page_name) + '</span></li>'
+                '</ul>'
+                '</div>'
+                '</nav>'
                 '</t>'
-            arch=arch+'<t t-if="website.bread_cum_image">'\
-                '<t t-set="bread_cum" t-value="website.image_url(website,'+repr('bread_cum_image')+')"/>'\
-                '<nav class="is-breadcrumb shop-breadcrumb" role="navigation" aria-label="breadcrumbs" t-attf-style="background-image:url(#{bread_cum}#)">'\
-                    '<div class="container">'\
-                        '<h1><span>'+str(page_name)+'</span></h1>'\
-                        '<ul class="breadcrumb">'\
-                            '<li><a href="/page/homepage">Home</a></li>'\
-                            '<li class="active"><span>'+str(page_name)+'</span></li>'\
-                        '</ul>'\
-                      '</div>'\
-                '</nav>'\
-            '</t>'
-            arch =arch+'</t>'
-            arch = arch+'</div><div class="oe_structure"/></t></t>'
+            )
+            arch = f'{arch}</t>'
+            arch = f'{arch}</div><div class="oe_structure"/></t></t>'
             page.with_context(lang=None).write({
                 'arch': arch,
             })

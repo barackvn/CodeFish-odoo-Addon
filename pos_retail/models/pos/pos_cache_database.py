@@ -59,62 +59,54 @@ class pos_cache_database(models.Model):
     def load_master_data(self, database_parameter={}, config_id=None):
         _logger.info('begin load_master_data')
         database = {}
-        domain = []
-        for model, load in database_parameter.items():
-            if load == True:
-                domain.append(model)
-        caches = self.search_read(
-            [('res_model', 'in', tuple(domain))], ['res_id', 'res_model', 'data', 'write_date'])
-        if caches:
+        domain = [model for model, load in database_parameter.items() if load == True]
+        if caches := self.search_read(
+            [('res_model', 'in', tuple(domain))],
+            ['res_id', 'res_model', 'data', 'write_date'],
+        ):
             for model, load in database_parameter.items():
                 if load == True:
                     database[model] = []
-            _logger.info('len of caches: %s' % len(caches))
+            _logger.info(f'len of caches: {len(caches)}')
             for cache in caches:
                 vals = json.loads(cache['data'])
                 vals['write_date'] = cache['write_date']
                 database[cache['res_model']].append(vals)
         _logger.info('end load_master_data')
-        if database == {}:
-            return False
-        else:
-            return database
+        return database or False
 
     @api.multi
     def get_fields_by_model(self, model_name):
-        params = self.env['ir.config_parameter'].sudo().get_param(model_name)
-        if not params:
-            list_fields = self.env[model_name].fields_get()
-            fields_load = []
-            for k, v in list_fields.items():
-                if v['type'] not in ['one2many', 'binary']:
-                    fields_load.append(k)
-            return fields_load
-        else:
+        if params := self.env['ir.config_parameter'].sudo().get_param(model_name):
             params = ast.literal_eval(params)
             return params.get('fields', [])
+        else:
+            list_fields = self.env[model_name].fields_get()
+            return [
+                k
+                for k, v in list_fields.items()
+                if v['type'] not in ['one2many', 'binary']
+            ]
 
     @api.multi
     def get_domain_by_model(self, model_name):
-        params = self.env['ir.config_parameter'].sudo().get_param(model_name)
-        if not params:
-            return []
-        else:
+        if params := self.env['ir.config_parameter'].sudo().get_param(model_name):
             params = ast.literal_eval(params)
             return params.get('domain', [])
+        else:
+            return []
 
     @api.model
     def insert_data(self, datas, model, first_install=False):
         all_fields = self.env[model].fields_get()
         version_info = odoo.release.version_info[0]
-        if version_info == 12:
-            if all_fields:
-                for data in datas:
-                    for field, value in data.items():
-                        if field == 'model':
-                            continue
-                        if all_fields[field] and all_fields[field]['type'] in ['date', 'datetime'] and value:
-                            data[field] = value.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+        if version_info == 12 and all_fields:
+            for data in datas:
+                for field, value in data.items():
+                    if field == 'model':
+                        continue
+                    if all_fields[field] and all_fields[field]['type'] in ['date', 'datetime'] and value:
+                        data[field] = value.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
         if first_install:
             for data in datas:
                 self.create({
@@ -124,8 +116,9 @@ class pos_cache_database(models.Model):
                 })
         else:
             for data in datas:
-                last_caches = self.search([('res_id', '=', str(data['id'])), ('res_model', '=', model)])
-                if last_caches:
+                if last_caches := self.search(
+                    [('res_id', '=', str(data['id'])), ('res_model', '=', model)]
+                ):
                     last_caches.write({
                         'data': json.dumps(data)
                     })
@@ -177,16 +170,30 @@ class pos_cache_database(models.Model):
         _logger.info(location.name)
         values = {}
         datas = []
-        if not product_need_update_onhand:
-            datas = self.env['product.template'].with_context(location=location_id).search_read(
-                [('type', '=', 'product'), ('available_in_pos', '=', True)], ['name', 'qty_available', 'default_code'])
-        else:
-            datas = self.env['product.template'].with_context(location=location_id).search_read(
-                [('type', '=', 'product'), ('available_in_pos', '=', True), ('id', 'in', product_need_update_onhand)], ['name', 'qty_available', 'default_code'])
+        datas = (
+            self.env['product.template']
+            .with_context(location=location_id)
+            .search_read(
+                [
+                    ('type', '=', 'product'),
+                    ('available_in_pos', '=', True),
+                    ('id', 'in', product_need_update_onhand),
+                ],
+                ['name', 'qty_available', 'default_code'],
+            )
+            if product_need_update_onhand
+            else self.env['product.template']
+            .with_context(location=location_id)
+            .search_read(
+                [('type', '=', 'product'), ('available_in_pos', '=', True)],
+                ['name', 'qty_available', 'default_code'],
+            )
+        )
         for data in datas:
             values[data['id']] = data['qty_available']
-            products = self.env['product.product'].search([('product_tmpl_id', '=', data['id'])])
-            if products:
+            if products := self.env['product.product'].search(
+                [('product_tmpl_id', '=', data['id'])]
+            ):
                 values[products[0].id] = data['qty_available']
         _logger.info(values)
         _logger.info('end get_stock_datas()')

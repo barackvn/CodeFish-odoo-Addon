@@ -51,19 +51,27 @@ class purchase_order(models.Model):
             if po.journal_id and invoice:
                 invoice.write({'journal_id': po.journal_id.id})
             for po_line in po.order_line:
-                self.env['account.invoice.line'].create({
-                    'payment_term_id': po.payment_term_id.id if po.payment_term_id else None,
-                    'purchase_id': po.id,
-                    'purchase_line_id': po_line.id,
-                    'invoice_line_tax_ids': [[6, False, [tax.id for tax in po_line.taxes_id]]],
-                    'product_id': po_line.product_id.id,
-                    'name': po_line.name if po_line.name else po.name,
-                    'account_id': account_id,
-                    'quantity': po_line.product_qty,
-                    'uom_id': po_line.product_uom.id if po_line.product_uom else None,
-                    'price_unit': po_line.price_unit,
-                    'invoice_id': invoice.id
-                })
+                self.env['account.invoice.line'].create(
+                    {
+                        'payment_term_id': po.payment_term_id.id
+                        if po.payment_term_id
+                        else None,
+                        'purchase_id': po.id,
+                        'purchase_line_id': po_line.id,
+                        'invoice_line_tax_ids': [
+                            [6, False, [tax.id for tax in po_line.taxes_id]]
+                        ],
+                        'product_id': po_line.product_id.id,
+                        'name': po_line.name or po.name,
+                        'account_id': account_id,
+                        'quantity': po_line.product_qty,
+                        'uom_id': po_line.product_uom.id
+                        if po_line.product_uom
+                        else None,
+                        'price_unit': po_line.price_unit,
+                        'invoice_id': invoice.id,
+                    }
+                )
             if invoice:
                 invoice.action_invoice_open()
         return {

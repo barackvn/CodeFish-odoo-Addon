@@ -17,8 +17,14 @@ class pos_session(models.Model):
             user = session.user_id
             company_id = session.config_id.journal_id.company_id.id
             orders = session.order_ids.filtered(lambda order: order.state == 'paid')
-            journal_id = self.env['ir.config_parameter'].sudo().get_param(
-                'pos.closing.journal_id_%s' % company_id, default=session.config_id.journal_id.id)
+            journal_id = (
+                self.env['ir.config_parameter']
+                .sudo()
+                .get_param(
+                    f'pos.closing.journal_id_{company_id}',
+                    default=session.config_id.journal_id.id,
+                )
+            )
             if not journal_id:
                 raise UserError(_("You have to set a Sale Journal for the POS:%s") % (session.config_id.name,))
 

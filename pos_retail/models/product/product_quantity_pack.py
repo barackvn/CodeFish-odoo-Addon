@@ -16,7 +16,7 @@ class product_quantity_pack(models.Model):
     def create(self, vals):
         pack = super(product_quantity_pack, self).create(vals)
         if not pack.barcode:
-            format_code = "%s%s%s" % ('210', pack.id, datetime.now().strftime("%d%m%y%H%M"))
+            format_code = f'210{pack.id}{datetime.now().strftime("%d%m%y%H%M")}'
             barcode = self.env['barcode.nomenclature'].sanitize_ean(format_code)
             pack.write({'barcode': barcode})
         return pack

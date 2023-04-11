@@ -41,7 +41,7 @@ class WebsiteSale(WebsiteSale):
         values = {'brand_rec': brand_ids,
                   'keep': keep}
         if post.get('search'):
-            values.update({'search': post.get('search')})
+            values['search'] = post.get('search')
         return request.render(
             'theme_stoneware.product_brands',
             values)
@@ -137,8 +137,11 @@ class WebsiteSale(WebsiteSale):
     @http.route(['/shop/product/whishlists/delete_all_json'], type='json', auth="public", website=True)
     def clean_whislist_all(self, line_id=None):
         cr,uid=request.cr,request.uid
-        data=request.env['product.wishlist'].sudo().search([('user_id','=',uid)])
-        if data:
+        if (
+            data := request.env['product.wishlist']
+            .sudo()
+            .search([('user_id', '=', uid)])
+        ):
             data.unlink()
         return True
 

@@ -10,14 +10,20 @@ class BarcodeConfiguration(models.Model):
     @api.model
     def _get_barcode_field(self):
         field_list = []
-        ir_model_id = self.env['ir.model'].search([('model', '=', 'product.product')])
-        if ir_model_id:
-            for field in self.env['ir.model.fields'].search([
-                     ('field_description', '!=', 'unknown'),
-                     ('readonly', '=', False),
-                     ('model_id', '=', ir_model_id.id),
-                     ('ttype', '=', 'char')]):
-                field_list.append((field.name, field.field_description))
+        if ir_model_id := self.env['ir.model'].search(
+            [('model', '=', 'product.product')]
+        ):
+            field_list.extend(
+                (field.name, field.field_description)
+                for field in self.env['ir.model.fields'].search(
+                    [
+                        ('field_description', '!=', 'unknown'),
+                        ('readonly', '=', False),
+                        ('model_id', '=', ir_model_id.id),
+                        ('ttype', '=', 'char'),
+                    ]
+                )
+            )
         return field_list
 
     label_width = fields.Integer(
@@ -96,8 +102,7 @@ class BarcodeConfiguration(models.Model):
 
     @api.onchange('dpi')
     def onchange_dpi(self):
-        if self.dpi < 80:
-            self.dpi = 80
+        self.dpi = max(self.dpi, 80)
 
     @api.multi
     def apply(self):
